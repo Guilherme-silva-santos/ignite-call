@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiRequest, NextApiResponse, NextPageContext } from 'next'
 import { Adapter } from 'next-auth/adapters'
 import { parseCookies, destroyCookie } from 'nookies'
 import { prisma } from '../prisma'
@@ -16,8 +16,8 @@ realmente foi criado e então fazer a conexão do user com sua conta do google
 export function PrismaAdapter(
   // ao apssar o req e res para a função prisma adapter
   // faz com que ela tenha acesso a ambos que estavam dentro do arquivo [...nextauth]
-  req: NextApiRequest,
-  res: NextApiResponse,
+  req: NextApiRequest | NextPageContext['req'],
+  res: NextApiResponse | NextPageContext['res'],
 ): Adapter {
   return {
     async createUser(user) {

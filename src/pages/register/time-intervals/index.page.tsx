@@ -22,6 +22,7 @@ import {
 import { getWeekDays } from '@/src/utils/get-week-days'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convertTimeStringInMinutes } from '@/src/utils/convert-time-string-to-minutes'
+import { useRouter } from 'next/router'
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
@@ -65,7 +66,7 @@ const timeIntervalsFormSchema = z.object({
           weekDay: interval.weekDay,
           startTimeInMinutes: convertTimeStringInMinutes(interval.startTime),
           // pega a função de conversão e passa para dentro do start time que é a string
-          endTimeinMinutes: convertTimeStringInMinutes(interval.endTime),
+          endTimeInMinutes: convertTimeStringInMinutes(interval.endTime),
         }
       })
     })
@@ -73,7 +74,7 @@ const timeIntervalsFormSchema = z.object({
       (intervals) => {
         return intervals.every(
           (interval) =>
-            interval.endTimeinMinutes - 60 >= interval.startTimeInMinutes,
+            interval.endTimeInMinutes - 60 >= interval.startTimeInMinutes,
         )
       },
       {
@@ -134,6 +135,7 @@ export default function TimeIntervals() {
 
   const weekDays = getWeekDays()
 
+  const router = useRouter()
   const { fields } = useFieldArray({
     control, // para saber que useFieldArray esta lidando com o form acima
     name: 'intervals', // nome do campo passado
@@ -148,6 +150,8 @@ export default function TimeIntervals() {
     await api.post('/users/time-intervals', {
       intervals,
     })
+
+    await router.push(`/register/update-profile`)
   }
 
   return (
