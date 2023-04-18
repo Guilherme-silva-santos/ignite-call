@@ -10,7 +10,9 @@ import {
 } from './styles'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
-
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../lib/axios'
+import { useRouter } from 'next/router'
 interface CalendarWeek {
   week: number
   days: Array<{
@@ -21,11 +23,16 @@ interface CalendarWeek {
 
 type CalendarWeeks = CalendarWeek[]
 
+interface BlockedDates {
+  blockedWeekDays: number[]
+}
 interface CalendarProps {
   selectedDate?: Date | null
   onDateSelected: (date: Date) => void
-  // cria uma porta de entrada e saida para o componente para que outros componentes possam passar para ele
-  // a data selecionada
+  /**
+ * cria uma porta de entrada e saida para o componente para que outros componentes possam passar para ele
+  a data selecionada
+ */
 }
 
 export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
@@ -34,6 +41,8 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
     // cria o dayjs que é um objeto de date porem setando o dia de um pois so queremos a informação de mes e de ano
     return dayjs().set('date', 1)
   })
+
+  const router = useRouter()
 
   function handlePreviusMonth() {
     const previusMonthDate = currentDate.subtract(1, 'month')
@@ -58,9 +67,28 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
   // formata a informação do currentdate para a versão do mes por extenso
   const currentYear = currentDate.format('YYYY')
 
+  const username = String(router.query.username)
+  const { data: blockedDates } = useQuery<BlockedDates>(
+    ['blocked-dates', currentDate.get('year'), currentDate.get('month')],
+    async () => {
+      const response = await api.get(`/users/${username}/blocked-dates`, {
+        // pega o username de dentro da rota
+        params: {
+          year: currentDate.get('year'),
+          month: currentDate.get('month'),
+        },
+      })
+      return response.data
+    },
+  )
+
   // forma um array e cada posição do array é uma semana com os dias da semana
   // [ [ 1,2,3 ] [ 4,5,6,7,8,9,10 ] ]
   const calendarWeeks = useMemo(() => {
+    if (!blockedDates) {
+      return []
+      // caso o blockedDates ainda não tenha sido carregado ele retorna como null
+    }
     /**
    * use memo para armazenar na memoria e não atualizar o component pai por
      qualquer coisa
@@ -150,7 +178,15 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
         // para que não possa efetuar o click
       }),
       ...daysInMonthArray.map((date) => {
-        return { date, disabled: date.endOf('day').isBefore(new Date()) }
+        return {
+          date,
+          // estrão disabilitados caso eles já passaram ou
+          // blockedDates?.blockedWeekDays.includes(date.get('day')),
+          // ou inclui o dia da semana que não esta dentro do blockedDates
+          disabled:
+            date.endOf('day').isBefore(new Date()) ||
+            blockedDates.blockedWeekDays.includes(date.get('day')),
+        }
         /**
          * O botão estara disabilitado quando se a date.endof('day'), que retorna 23:59:59, do dia especifico
          * já passou ou seja é anterior ao new date ele precisa estar desabilitado
@@ -194,7 +230,7 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
      * Passa o currentdate como dependencia, pois toda vez que ela mudar, ou seja, toda vez que o user mudar o mes
      * precisa recalcular os dias do mes.
      */
-  }, [currentDate])
+  }, [currentDate, blockedDates])
 
   console.log(calendarWeeks)
 
