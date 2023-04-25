@@ -19,7 +19,13 @@ interface Availability {
   // horarios disponiveis
 }
 
-export function CalendarStep() {
+interface CalendarstepProps {
+  // função foi colocada dentro da interface para quando o user selecionar tanto a data quanto o horario
+  // essa função precisa ser chamada enviando tanto a informação da data
+  onSelectDateTime: (date: Date) => void
+}
+
+export function CalendarStep({ onSelectDateTime }: CalendarstepProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   // const [availability, setAvailability] = useState<Availability | null>(null)
 
@@ -59,6 +65,20 @@ export function CalendarStep() {
     },
   )
 
+  function handleSelectTime(hour: number) {
+    // sera chamada quando o user selecionar o horario em especifico
+    // atraves do onClick do botão
+
+    // passa para o dayjs a data que ja foi selecionada também pois queremos a data e o horaio selecionado
+    // ou seja, pega a data selecionada e pega a hora selecionada
+    const dateWithTime = dayjs(selectedDate)
+      .set('hour', hour)
+      .startOf('hour')
+      .toDate()
+
+    onSelectDateTime(dateWithTime)
+  }
+
   /**
    * o useEffect carregara os dados da api toda vez que o selectedDate mudar
   useEffect(() => {
@@ -94,6 +114,7 @@ export function CalendarStep() {
               return (
                 <TimePickerItem
                   key={hour}
+                  onClick={() => handleSelectTime(hour)}
                   disabled={!availability.availableTimes.includes(hour)}
                 >
                   {String(hour).padStart(2, '0')}:00h

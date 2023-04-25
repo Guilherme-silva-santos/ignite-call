@@ -25,6 +25,7 @@ type CalendarWeeks = CalendarWeek[]
 
 interface BlockedDates {
   blockedWeekDays: number[]
+  blockedDates: number[]
 }
 interface CalendarProps {
   selectedDate?: Date | null
@@ -75,7 +76,9 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
         // pega o username de dentro da rota
         params: {
           year: currentDate.get('year'),
-          month: currentDate.get('month'),
+          month: currentDate.get('month') + 1,
+          // é preciso colocar o +1 pois no js janeiro é 0 e no sql janeiro é 1
+          // então no js precisa add uma a mais para igualar com o sql
         },
       })
       return response.data
@@ -185,7 +188,9 @@ export function Calendar({ onDateSelected, selectedDate }: CalendarProps) {
           // ou inclui o dia da semana que não esta dentro do blockedDates
           disabled:
             date.endOf('day').isBefore(new Date()) ||
-            blockedDates.blockedWeekDays.includes(date.get('day')),
+            blockedDates.blockedWeekDays.includes(date.get('day')) ||
+            blockedDates.blockedDates.includes(date.get('date')),
+          // para manter disabled caso não tenham mais horarios disponiveis
         }
         /**
          * O botão estara disabilitado quando se a date.endof('day'), que retorna 23:59:59, do dia especifico

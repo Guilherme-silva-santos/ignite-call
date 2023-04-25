@@ -35,7 +35,7 @@ export function PrismaAdapter(
        *
        * ai na const faz um desestruturação do @ignitecall:userId e o nome que será da var userIdOnCookies
        */
-      const { '@ignitecall:userId': userIdOnCookies } = parseCookies({ req })
+      const { '@ignite-call:userId': userIdOnCookies } = parseCookies({ req })
 
       if (!userIdOnCookies) {
         throw new Error('User ID not found on cookies')
@@ -52,7 +52,7 @@ export function PrismaAdapter(
           avatar_url: user.avatar_url,
         },
       })
-      destroyCookie({ res }, '@ignitecall:userId', {
+      destroyCookie({ res }, '@ignite-call:userId', {
         // depois que o user fez login como não precisaremos mais dos cookies eles podem ser destruidos
         // e foi usado o res pois sempre que for modificar os cookies usa-se o res
         path: '/',
@@ -263,5 +263,9 @@ export function PrismaAdapter(
         },
       })
     },
+
+    // async createVerificationToken({ identifier, expires, token }) {},
+
+    // async useVerificationToken({ identifier, token }) {},
   }
 }

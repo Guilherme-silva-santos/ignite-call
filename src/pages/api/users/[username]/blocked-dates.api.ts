@@ -74,7 +74,7 @@ export default async function handler(
   })
 
   /**
-   * query para retornar os dias que estaão com os horarios cheios
+   * query para retornar os dias que estão com os horarios cheios
    * Precisa pegar cada dia da semana e ver quais os horarios que estão disponiveis
    * e quais agendamentos tem em um determinado dia da semana e retornar se ainda tem algum horario disponivel
    * Exemplo:
@@ -93,23 +93,30 @@ export default async function handler(
    * e trocando a seha do root em desenvolvimento para docker
    * -p disponibilizando a porta do mysql 2206 ou seja expondo a porta
    */
-  const blockedDatesRaw = await prisma.$queryRaw`
-  /**
-    começa buscando todos os scheduligs do user disponiveis naquele mes 
-   */
-    SELECT *
-    FROM schedulings S
+  const blockedDatesRaw: Array<{ date: number }> = await prisma.$queryRaw`
+  SELECT
+    
+    EXTRACT(DAY FROM S.date) AS date,
 
-    WHERE S.user_id = ${user.id}
-    /**
-        schedulings que o mes e o ano da data bate com o mes e o ano da data em que esta sendo feita a busca 
-        DATE_FORMAT é um formato do sql para formatar datas 
-        então pega o S = schedulings.date e formata a data '%Y-%m' assim retornando o mes e o ano da seguinte 
-        maneira 2023-10 e verifica se eles são iguais ao year e month 
-     */
-        AND DATE_FORMAT(S.date, '%Y-%m') = ${`${year}-${month}`}
+    COUNT(S.date) AS amount,
 
+    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60) AS size
+
+  FROM schedulings S
+
+  LEFT JOIN user_time_intervals UTI
+    ON UTI.week_day = WEEKDAY(DATE_ADD(S.date, INTERVAL 1 DAY))
+
+  WHERE S.user_id = ${user.id}
+    AND DATE_FORMAT(S.date, "%Y-%m") = ${`${year}-${month}`}
+
+  GROUP BY EXTRACT(DAY FROM S.date),
+    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+
+  HAVING amount >= size  
 `
 
-  return res.json({ blockedWeekDays, blockedDatesRaw })
+  const blockedDates = blockedDatesRaw.map((item) => item.date)
+
+  return res.json({ blockedWeekDays, blockedDates })
 }

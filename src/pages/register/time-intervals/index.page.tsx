@@ -23,6 +23,7 @@ import { getWeekDays } from '@/src/utils/get-week-days'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { convertTimeStringInMinutes } from '@/src/utils/convert-time-string-to-minutes'
 import { useRouter } from 'next/router'
+import { NextSeo } from 'next-seo'
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
@@ -155,86 +156,89 @@ export default function TimeIntervals() {
   }
 
   return (
-    <Container>
-      <Header>
-        <Heading as="strong">Quase lá</Heading>
-        <Text>
-          Defina o intervalo de horários que você está disponível em cada dia da
-          semana.
-        </Text>
+    <>
+      <NextSeo title="Selecione sua disponibilidade | Ignite Call" noindex />
+      <Container>
+        <Header>
+          <Heading as="strong">Quase lá</Heading>
+          <Text>
+            Defina o intervalo de horários que você está disponível em cada dia
+            da semana.
+          </Text>
 
-        <MultiStep size={4} currentStep={3} />
-      </Header>
+          <MultiStep size={4} currentStep={3} />
+        </Header>
 
-      <IntervalBox as="form" onSubmit={handleSubmit(handleSetTimeIntervals)}>
-        <IntervalContainer>
-          {fields.map((field, index) => {
-            // percorre todos os fields passados na useFieldArray
-            // ai cada campo retornara dentro de um field((field) =>
-            // a key id serve para identificar cada campo corretamente
-            return (
-              <IntervalItem key={field.id}>
-                <IntervalDay>
-                  <Controller
-                    // serve para quando temos um elemento em tela que vai inserir uma informação no formulario
-                    // mas ele não é um elemento nativo do html
-                    name={`intervals.${index}.enabled`}
-                    // nome do campo, que é um booblean que foi passado lá nas informações para deixar o check
-                    // preenchido ou não
-                    control={control}
-                    // api que permite alterar e registar valores de campos do form
-                    render={({ field }) => {
-                      return (
-                        <Checkbox
-                          onCheckedChange={
-                            (checked) =>
-                              // quando o user clicar para trocar se o chebox esta selecionado ou não
-                              field.onChange(checked === true)
-                            // se o user colocou o check como true passa ele sendo true se não false
-                            // pois noradix caso o user não interaja com o checkbox ele fica como indeterminate
-                            // então foi passado ele como true
-                          }
-                          checked={field.value}
-                        />
-                      )
-                    }}
-                  />
-                  <Text>{weekDays[field.weekDay]}</Text>
-                </IntervalDay>
-                <IntervalInputs>
-                  <TextInput
-                    size="sm"
-                    type="time"
-                    step={60}
-                    {...register(`intervals.${index}.startTime`)}
-                    // percorre o register, faz um interpolação passando o intervals, passando o indice do array
-                    // que seria o indice dentro dos intervalos e o
+        <IntervalBox as="form" onSubmit={handleSubmit(handleSetTimeIntervals)}>
+          <IntervalContainer>
+            {fields.map((field, index) => {
+              // percorre todos os fields passados na useFieldArray
+              // ai cada campo retornara dentro de um field((field) =>
+              // a key id serve para identificar cada campo corretamente
+              return (
+                <IntervalItem key={field.id}>
+                  <IntervalDay>
+                    <Controller
+                      // serve para quando temos um elemento em tela que vai inserir uma informação no formulario
+                      // mas ele não é um elemento nativo do html
+                      name={`intervals.${index}.enabled`}
+                      // nome do campo, que é um booblean que foi passado lá nas informações para deixar o check
+                      // preenchido ou não
+                      control={control}
+                      // api que permite alterar e registar valores de campos do form
+                      render={({ field }) => {
+                        return (
+                          <Checkbox
+                            onCheckedChange={
+                              (checked) =>
+                                // quando o user clicar para trocar se o chebox esta selecionado ou não
+                                field.onChange(checked === true)
+                              // se o user colocou o check como true passa ele sendo true se não false
+                              // pois noradix caso o user não interaja com o checkbox ele fica como indeterminate
+                              // então foi passado ele como true
+                            }
+                            checked={field.value}
+                          />
+                        )
+                      }}
+                    />
+                    <Text>{weekDays[field.weekDay]}</Text>
+                  </IntervalDay>
+                  <IntervalInputs>
+                    <TextInput
+                      size="sm"
+                      type="time"
+                      step={60}
+                      {...register(`intervals.${index}.startTime`)}
+                      // percorre o register, faz um interpolação passando o intervals, passando o indice do array
+                      // que seria o indice dentro dos intervalos e o
 
-                    disabled={intervals[index].enabled === false}
-                    // o input sera disabilitado quando o index enabled que é indice do campo
-                    // seja igual a false
-                  />
-                  <TextInput
-                    size="sm"
-                    type="time"
-                    step={60}
-                    {...register(`intervals.${index}.endTime`)}
-                    disabled={intervals[index].enabled === false}
-                  />
-                </IntervalInputs>
-              </IntervalItem>
-            )
-          })}
-        </IntervalContainer>
+                      disabled={intervals[index].enabled === false}
+                      // o input sera disabilitado quando o index enabled que é indice do campo
+                      // seja igual a false
+                    />
+                    <TextInput
+                      size="sm"
+                      type="time"
+                      step={60}
+                      {...register(`intervals.${index}.endTime`)}
+                      disabled={intervals[index].enabled === false}
+                    />
+                  </IntervalInputs>
+                </IntervalItem>
+              )
+            })}
+          </IntervalContainer>
 
-        {errors.intervals && (
-          <FormError size="sm">{errors.intervals.message}</FormError>
-        )}
+          {errors.intervals && (
+            <FormError size="sm">{errors.intervals.message}</FormError>
+          )}
 
-        <Button type="submit" disabled={isSubmitting}>
-          Próximo Passo <ArrowRight />
-        </Button>
-      </IntervalBox>
-    </Container>
+          <Button type="submit" disabled={isSubmitting}>
+            Próximo Passo <ArrowRight />
+          </Button>
+        </IntervalBox>
+      </Container>
+    </>
   )
 }
